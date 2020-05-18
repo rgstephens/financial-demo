@@ -42,6 +42,8 @@
 - check deposits for last week
 - total deposits over last year
 - how much was deposited in January
+- how much did I earn last month?
+- How much have i[ earned?](payment_amount)
 
 ## intent:deny
 - not really
