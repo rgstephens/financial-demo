@@ -14,98 +14,74 @@ from actions.parsing import (
 logger = logging.getLogger(__name__)
 
 
-def custom_request_next_slot(
-    form,
-    dispatcher: "CollectingDispatcher",
-    tracker: "Tracker",
-    domain: Dict[Text, Any],
-) -> Optional[List[EventType]]:
-    """Request the next slot and utter template if needed,
-        else return None"""
+from typing import Dict, Text, List
 
-    for slot in form.required_slots(tracker):
-        if form._should_request_slot(tracker, slot):
-            logger.debug(f"Request next slot '{slot}'")
-            dispatcher.utter_message(
-                template=f"utter_ask_{form.name()}_{slot}", **tracker.slots
-            )
-            return [SlotSet(REQUESTED_SLOT, slot)]
-
-    return None
+from rasa_sdk import Tracker
+from rasa_sdk.events import EventType
+from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk import Action
+from rasa_sdk.events import SlotSet
 
 
-class PayCCForm(FormAction):
-    """Pay credit card form..."""
+def payment_amount_db() -> Dict[Text, Any]:
+    """Database of supported payment amounts"""
 
-    def name(self) -> Text:
-        """Unique identifier of the form"""
+    return {
+        "minimum balance": 85,
+        "current balance": 550,
+    }
 
-        return "cc_payment_form"
+def credit_card_db() -> List[Text]:
+    """Database of supported credit cards"""
 
-    def request_next_slot(
-        self,
-        dispatcher: "CollectingDispatcher",
-        tracker: "Tracker",
-        domain: Dict[Text, Any],
-    ) -> Optional[List[EventType]]:
+    return [
+        "iron bank",
+        "credit all",
+        "gringots",
+        "justice bank",
+    ]
 
-        return custom_request_next_slot(self, dispatcher, tracker, domain)
+def vendor_name_db() -> List[Text]:
+    """Database of supported vendors customers might buy from"""
 
-    @staticmethod
-    def required_slots(tracker: Tracker) -> List[Text]:
-        """A list of required slots that the form has to fill"""
+    return [
+        "amazon",
+        "target",
+        "starbucks",
+    ]
 
-        return ["credit_card", "payment_amount", "time", "confirm"]
+def transactions_db() -> Dict[Text, Any]:
+    """Database of transactions"""
 
-    def slot_mappings(self) -> Dict[Text, Union[Dict, List[Dict]]]:
-        """A dictionary to map required slots to
-            - an extracted entity
-            - intent: value pairs
-            - a whole message
-            or a list of them, where a first match will be picked"""
-
-        return {
-            "credit_card": self.from_entity(entity="credit_card"),
-            "payment_amount": [
-                self.from_entity(entity="payment_amount"),
-                self.from_entity(entity="amount-of-money"),
-                self.from_entity(entity="number"),
+    return {
+        "spend": {
+            "starbucks": [{"amount": 5.50}, {"amount": 9.10}],
+            "amazon": [
+                {"amount": 35.95},
+                {"amount": 9.35},
+                {"amount": 49.50},
             ],
-            "time": [self.from_entity(entity="time")],
-            "confirm": [
-                self.from_intent(value=True, intent="affirm"),
-                self.from_intent(value=False, intent="deny"),
-            ],
-        }
+            "target": [{"amount": 124.95}],
+        },
+        "deposit": {
+            "employer": [{"amount": 1250.00}],
+            "interest": [{"amount": 50.50}],
+        },
+    }
 
-    @staticmethod
-    def payment_amount_db() -> Dict[Text, Any]:
-        """Database of supported payment amounts"""
+class ValidatePaymentAmount(Action):
+    def name(self) -> text:
+        return "validate_payment_amount"
 
-        return {
-            "minimum balance": 85,
-            "current balance": 550,
-        }
-
-    @staticmethod
-    def credit_card_db() -> List[Text]:
-        """Database of supported credit cards"""
-
-        return [
-            "iron bank",
-            "credit all",
-            "gringots",
-            "justice bank",
-        ]
-
-    def validate_payment_amount(
+    def run(
         self,
-        value: Text,
         dispatcher: CollectingDispatcher,
         tracker: Tracker,
         domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
+    ) -> List[Any]:
         """Validate payment amount value."""
+
+        value = tracker.get_slot("payment_amount")
 
         try:
             entity = get_entity_details(
@@ -114,55 +90,122 @@ class PayCCForm(FormAction):
             amount_currency = parse_duckling_currency(entity)
             if not amount_currency:
                 raise (TypeError)
-            return amount_currency
+            return [SlotSet(payment_amount, amount_currency)]
+
         except (TypeError, AttributeError):
             pass
-        if value and value.lower() in self.payment_amount_db():
+        if value and value.lower() in payment_amount_db():
             key = value.lower()
-            amount = self.payment_amount_db().get(key)
+            amount = payment_amount_db().get(key)
             amount_type = f" (your {key})"
-            return {
-                "payment_amount": f"{amount:.2f}",
-                "payment_amount_type": amount_type,
-                "currency": "$",
-            }
+            return [
+                        SlotSet("payment_amount", f"{amount:.2f}"),
+                        SlotSet("payment_amount_type", amount_type),
+                        SlotSet("currency", "$")
+                ]
 
         else:
             dispatcher.utter_message(template="utter_no_payment_amount")
-            return {"payment_amount": None}
+            return [SlotSet("payment_amount", None)]
+
+class ValidateCreditCard(Action):
+    def name(self) -> text:
+        return "validate_credit_card"
 
     def validate_credit_card(
         self,
-        value: Text,
         dispatcher: CollectingDispatcher,
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> Dict[Text, Any]:
         """Validate credit_card value."""
 
-        if value and value.lower() in self.credit_card_db():
-            return {"credit_card": value}
+        value = tracker.get_slot("credit_card")
+
+        if value and value.lower() in credit_card_db():
+            return [SlotSet("credit_card", value)]
         else:
             dispatcher.utter_message(template="utter_no_creditcard")
-            return {"credit_card": None}
+            return [SlotSet("credit_card", None)]
+
+class ValidateTime(Action):
+    def name(self) -> text:
+        return "validate_time"
 
     def validate_time(
         self,
-        value: Text,
         dispatcher: CollectingDispatcher,
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> Dict[Text, Any]:
         """Validate time value."""
+        
+        if tracker.active_form == "cc_payment_form":
+            timeentity = get_entity_details(tracker, "time")
+            parsedtime = parse_duckling_time(timeentity)
+            if not parsedtime:
+                dispatcher.utter_message(template="utter_no_transactdate")
+                return [SlotSet("time", None)]
+            return [SlotSet(k, v) for k, v in parsedtime.items()]
+        
+        if tracker.active_form == "transact_search_form":
+            timeentity = get_entity_details(tracker, "time")
+            parsedinterval = parse_duckling_time_as_interval(timeentity)
+            if not parsedinterval:
+                dispatcher.utter_message(template="utter_no_transactdate")
+                return [SlotSet("time", None)]
+            return [SlotSet(k, v) for k, v in parsedinterval.items()]
 
-        timeentity = get_entity_details(tracker, "time")
-        parsedtime = parse_duckling_time(timeentity)
-        if not parsedtime:
-            dispatcher.utter_message(template="utter_no_transactdate")
-            return {"time": None}
-        return parsedtime
+class ValidateAmountOfMoney(Action):
+    def name(self) -> Text:
+        return "validate_amount_of_money"
 
-    def submit(
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+
+        value = tracker.get_slot("amount_of_money")
+        try:
+            entity = get_entity_details(
+                tracker, "amount-of-money"
+            ) or get_entity_details(tracker, "number")
+            amount_currency = parse_duckling_currency(entity)
+            if not amount_currency:
+                raise (TypeError)
+            return [SlotSet(k,v) for k,v in amount_currency.items()]
+        except (TypeError, AttributeError):
+            dispatcher.utter_message(template="utter_no_payment_amount")
+            return [SlotSet("amount_of_money", None)]
+
+class ValidateVendorName(Action):
+    def name(self) -> Text:
+        return "validate_vendor_name"
+
+    def validate_vendor_name(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        """Validate vendor_name value."""
+
+        value = tracker.get_slot("vendor_name")
+
+        if value and value.lower() in vendor_name_db():
+            return {"vendor_name": value}
+        else:
+            dispatcher.utter_message(template="utter_no_vendor_name")
+            return {"vendor_name": None}
+
+
+class ActionSubmitCCPayment(Action):
+    def name(self) -> Text:
+        return "action_submit_cc_payment"
+
+    def run(
         self,
         dispatcher: CollectingDispatcher,
         tracker: Tracker,
@@ -183,109 +226,9 @@ class PayCCForm(FormAction):
             SlotSet("grain", None),
         ]
 
-
-class TransactSearchForm(FormAction):
-    """Transaction search form"""
-
+class ActionSubmitTransactSearch(Action):
     def name(self) -> Text:
-        """Unique identifier of the form"""
-
-        return "transact_search_form"
-
-    def request_next_slot(
-        self,
-        dispatcher: "CollectingDispatcher",
-        tracker: "Tracker",
-        domain: Dict[Text, Any],
-    ) -> Optional[List[EventType]]:
-
-        return custom_request_next_slot(self, dispatcher, tracker, domain)
-
-    @staticmethod
-    def required_slots(tracker: Tracker) -> List[Text]:
-        """A list of required slots that the form has to fill"""
-
-        return ["search_type", "time"]
-
-    def slot_mappings(self) -> Dict[Text, Union[Dict, List[Dict]]]:
-        """A dictionary to map required slots to
-            - an extracted entity
-            - intent: value pairs
-            - a whole message
-            or a list of them, where a first match will be picked"""
-
-        return {
-            "vendor_name": self.from_entity(entity="vendor_name"),
-            "time": [self.from_entity(entity="time")],
-            "search_type": [
-                self.from_trigger_intent(
-                    intent="search_transactions", value="spend"
-                ),
-                self.from_trigger_intent(
-                    intent="check_earnings", value="deposit"
-                ),
-            ],
-        }
-
-    @staticmethod
-    def vendor_name_db() -> List[Text]:
-        """Database of supported vendors customers might buy from"""
-
-        return [
-            "amazon",
-            "target",
-            "starbucks",
-        ]
-
-    def validate_vendor_name(
-        self,
-        value: Text,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
-        """Validate vendor_name value."""
-
-        if value and value.lower() in self.vendor_name_db():
-            return {"vendor_name": value}
-        else:
-            dispatcher.utter_message(template="utter_no_vendor_name")
-            return {"vendor_name": None}
-
-    def validate_time(
-        self,
-        value: Text,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
-        """Validate time value."""
-        timeentity = get_entity_details(tracker, "time")
-        parsedinterval = parse_duckling_time_as_interval(timeentity)
-        if not parsedinterval:
-            dispatcher.utter_message(template="utter_no_transactdate")
-            return {"time": None}
-        return parsedinterval
-
-    @staticmethod
-    def transactions_db() -> Dict[Text, Any]:
-        """Database of transactions"""
-
-        return {
-            "spend": {
-                "starbucks": [{"amount": 5.50}, {"amount": 9.10}],
-                "amazon": [
-                    {"amount": 35.95},
-                    {"amount": 9.35},
-                    {"amount": 49.50},
-                ],
-                "target": [{"amount": 124.95}],
-            },
-            "deposit": {
-                "employer": [{"amount": 1250.00}],
-                "interest": [{"amount": 50.50}],
-            },
-        }
+        return "action_submit_transact_search"
 
     def submit(
         self,
@@ -297,7 +240,7 @@ class TransactSearchForm(FormAction):
             after all required slots are filled"""
 
         search_type = tracker.get_slot("search_type")
-        transactions_subset = self.transactions_db().get(search_type, {})
+        transactions_subset = transactions_db().get(search_type, {})
         vendor = tracker.get_slot("vendor_name")
 
         if vendor:
@@ -336,66 +279,9 @@ class TransactSearchForm(FormAction):
         ]
 
 
-class TransferForm(FormAction):
-    """Transfer money form..."""
-
+class ActionSubmitTransfer(Action):
     def name(self) -> Text:
-        """Unique identifier of the form"""
-
-        return "transfer_form"
-
-    def request_next_slot(
-        self,
-        dispatcher: "CollectingDispatcher",
-        tracker: "Tracker",
-        domain: Dict[Text, Any],
-    ) -> Optional[List[EventType]]:
-
-        return custom_request_next_slot(self, dispatcher, tracker, domain)
-
-    @staticmethod
-    def required_slots(tracker: Tracker) -> List[Text]:
-        """A list of required slots that the form has to fill"""
-
-        return ["PERSON", "amount_of_money", "confirm"]
-
-    def slot_mappings(self) -> Dict[Text, Union[Dict, List[Dict]]]:
-        """A dictionary to map required slots to
-            - an extracted entity
-            - intent: value pairs
-            - a whole message
-            or a list of them, where a first match will be picked"""
-
-        return {
-            "PERSON": [self.from_entity(entity="PERSON")],
-            "amount_of_money": [
-                self.from_entity(entity="amount-of-money"),
-                self.from_entity(entity="number"),
-            ],
-            "confirm": [
-                self.from_intent(value=True, intent="affirm"),
-                self.from_intent(value=False, intent="deny"),
-            ],
-        }
-
-    def validate_amount_of_money(
-        self,
-        value: Text,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
-        try:
-            entity = get_entity_details(
-                tracker, "amount-of-money"
-            ) or get_entity_details(tracker, "number")
-            amount_currency = parse_duckling_currency(entity)
-            if not amount_currency:
-                raise (TypeError)
-            return amount_currency
-        except (TypeError, AttributeError):
-            dispatcher.utter_message(template="utter_no_payment_amount")
-            return {"amount_of_money": None}
+        return "action_submit_transfer"
 
     def submit(self, dispatcher, tracker, domain):
         if tracker.get_slot("confirm"):

@@ -18,6 +18,9 @@ intents:
 - check_balance
 - check_earnings:
     use_entities: []
+- nlu_fallback
+
+
 entities:
 - amount-of-money
 - payment_amount
@@ -63,6 +66,7 @@ slots:
   currency:
     type: unfeaturized
     initial_value: "$"
+
 responses:
   utter_ask_transfer_form_amount_of_money:
   - text: How much money do you want to transfer?
@@ -152,10 +156,61 @@ responses:
   - text: "Your balance is {currency}{init_account_balance}"
   utter_changed_account_balance:
   - text: "Your balance was {currency}{init_account_balance} and is now {currency}{account_balance} after the transfer"
+
 actions:
 - action_account_balance
+- action_submit_cc_payment
+- action_submit_transfer
+- action_submit_transact_search
 
 forms:
-- cc_payment_form
-- transfer_form
-- transact_search_form
+- cc_payment_form:
+  credit_card:
+    - type: from_entity
+      entity: credit_card
+  payment_amount:
+    - type: from_entity
+      entity: payment_amount
+    - type: from_entity
+      entity: amount-of-money
+    - type: from_entity
+      entity: number
+  time:
+    - type: from_entity
+      entity: time
+  confirm:
+    - type: from_intent
+      value: true
+      intent: affirm
+    - type: from_intent
+      value: false
+      intent: deny
+
+- transfer_form:
+  PERSON:
+    - type: from_entity
+      entity: PERSON
+  amount_of_money:
+    - type: from_entity
+      entity: amount-of-money
+    - type: from_entity
+      entity: number
+  confirm:
+    - type: from_intent
+      value: true
+      intent: affirm
+    - type: from_intent
+      value: false
+      intent: deny
+
+- transact_search_form:
+  search_type:
+    - type: from_trigger_intent
+      intent: search_transactions
+      value: spend
+    - type: from_trigger_intent
+      intent: check_earnings
+      value: deposit
+  time:
+    - type: from_entity
+      entity: time
