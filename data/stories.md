@@ -76,7 +76,7 @@
     - transfer_form
     - form{"name": "transfer_form"}
     - form{"name": null}
-  
+
 ## transfer money ask known recipients
 * transfer_money
     - transfer_form
@@ -364,3 +364,30 @@
 * check_balance{"account_type":"credit","credit_card":"gringotts"}
     - action_credit_card_balance
 
+## New Story
+* transfer_money
+    - transfer_form
+    - form{"name":"transfer_form"}
+* pay_cc
+    - cc_payment_form
+    - form{"name":"cc_payment_form"}
+    - form{"name":null}
+    - slot{"requested_slot":null}
+    - utter_ask_back_to_transfer
+* affirm
+    - transfer_form
+    - form{"name":"transfer_form"}
+* ask_transfer_charge
+    - utter_transfer_charge
+    - transfer_form
+    - form{"name":"transfer_form"}
+* check_recipients
+    - action_recipients
+    - transfer_form
+    - form{"name":"transfer_form"}
+* check_balance
+    - action_account_balance
+    - transfer_form
+    - form{"name":"transfer_form"}
+    - form{"name":null}
+    - slot{"requested_slot":null}

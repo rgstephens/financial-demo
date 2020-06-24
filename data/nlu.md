@@ -19,6 +19,8 @@
 - is there a transfer fee
 - is there a xfer fee
 - how much is the transfer fee
+- what are the transfer charges?
+- what is the transfer charge
 
 ## intent:check_balance
 - How much money is on my account?
@@ -31,7 +33,6 @@
 - what is my account balance
 - what's my account balance?
 - what's my account balance
-- what's my balance?
 - whats my account balance
 - What's my [credit card](account_type) balance
 - What's my [credit](account_type) balance
@@ -79,6 +80,7 @@
 - no way
 - nope
 - no thanks
+- /deny
 
 ## intent:goodbye
 - see you later
@@ -87,6 +89,7 @@
 - quit
 - stop
 - bye
+- Bye
 
 ## intent:greet
 - good morning
@@ -162,6 +165,9 @@
 - for saturday
 - I want to pay the [minimum balance](payment_amount) on my [gringotts](credit_card) [credit card](account_type) today
 - today
+- Now
+- today is fine
+- 40
 
 ## intent:pay_cc
 - I would like to pay the [minimum balance](payment_amount) on my [gringtos](credit_card) card
@@ -233,6 +239,12 @@
 - I want to transfer $100 to John
 - i want to transfer $400 to Akela
 - I want to pay Paula Handy
+- Pay Percy $50
+- Pay $50 to Percy
+- Ok pay Emma
+- pay Emma
+- Transfer 400
+- I want to make a payment
 
 ## intent:check_recipients
 - Who can I send money to?
@@ -246,6 +258,12 @@
 - who's in my recipient list?
 - who can I transfer money to?
 
+## synonym:credit
+- credit card
+- credit cards
+- credit account
+- credit accounts
+
 ## synonym:gringotts
 - gringots
 - Gringots
@@ -257,9 +275,3 @@
 - gringott's
 - Gringtos
 - gringtos
-
-## synonym:credit
-- credit card
-- credit cards
-- credit account
-- credit accounts
