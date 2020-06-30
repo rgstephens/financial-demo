@@ -23,6 +23,8 @@
     - form{"name": null}
 * check_balance
     - action_account_balance
+* greet
+    - utter_greet
 
 ## pay credit card and check account balance inside form
 * pay_cc
@@ -76,7 +78,7 @@
     - transfer_form
     - form{"name": "transfer_form"}
     - form{"name": null}
-  
+
 ## transfer money ask known recipients
 * transfer_money
     - transfer_form
@@ -363,4 +365,3 @@
 ## Show credit accounts
 * check_balance{"account_type":"credit","credit_card":"emblem"}
     - action_credit_card_balance
-
