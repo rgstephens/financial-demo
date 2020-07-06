@@ -8,6 +8,7 @@
 - yeah
 - yes please
 - yes plz
+- transfer money to Paul
 
 ## intent:ask_transfer_charge
 - Will I be charged for transferring money
@@ -31,7 +32,6 @@
 - what is my account balance
 - what's my account balance?
 - what's my account balance
-- what's my balance?
 - whats my account balance
 - What's my [credit card](account_type) balance
 - What's my [credit](account_type) balance
@@ -52,7 +52,6 @@
 - what's my [credit card](account_type) account balance?
 - What is my [emblem](credit_card) card balance?
 - whats my [credit card](account_type) balance
-- What is my [emblem](credit_card) card balance?
 - What is my [emblem](credit_card) balance?
 - whats my [emblm](credit_card) card balance?
 - what's my [embelm](credit_card)'s card balance?
@@ -162,6 +161,7 @@
 - for saturday
 - I want to pay the [minimum balance](payment_amount) on my [emblem](credit_card) [credit card](account_type) today
 - today
+- transfer money
 
 ## intent:pay_cc
 - I would like to pay the [minimum balance](payment_amount) on my [embelm](credit_card) card
@@ -229,13 +229,12 @@
 - can I transfer money to my mom
 - I want to pay Bill
 - pay my friend
-- transfer money
 - I want to transfer $100 to John
 - i want to transfer $400 to Akela
 - I want to pay Paula Handy
 - pay Katy Parrow $40 please
 - transfer $60 to John Jacob
-- pay Evan Oslo 
+- pay Evan Oslo
 - pay Lisa please
 - can I transfer money to Kyle Gardner?
 - Pay Karen 60 Euros
@@ -254,12 +253,12 @@
 - who's in my recipient list?
 - who can I transfer money to?
 
-## synonym:emblem
-- emblm
-- embelm
-
 ## synonym:credit
 - credit card
 - credit cards
 - credit account
 - credit accounts
+
+## synonym:emblem
+- emblm
+- embelm
