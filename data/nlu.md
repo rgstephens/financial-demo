@@ -31,7 +31,6 @@
 - what is my account balance
 - what's my account balance?
 - what's my account balance
-- what's my balance?
 - whats my account balance
 - What's my [credit card](account_type) balance
 - What's my [credit](account_type) balance
@@ -52,7 +51,6 @@
 - what's my [credit card](account_type) account balance?
 - What is my [emblem](credit_card) card balance?
 - whats my [credit card](account_type) balance
-- What is my [emblem](credit_card) card balance?
 - What is my [emblem](credit_card) balance?
 - whats my [emblm](credit_card) card balance?
 - what's my [embelm](credit_card)'s card balance?
@@ -87,6 +85,7 @@
 - quit
 - stop
 - bye
+- bla
 
 ## intent:greet
 - good morning
@@ -235,7 +234,7 @@
 - I want to pay Paula Handy
 - pay Katy Parrow $40 please
 - transfer $60 to John Jacob
-- pay Evan Oslo 
+- pay Evan Oslo
 - pay Lisa please
 - can I transfer money to Kyle Gardner?
 - Pay Karen 60 Euros
@@ -254,12 +253,12 @@
 - who's in my recipient list?
 - who can I transfer money to?
 
-## synonym:emblem
-- emblm
-- embelm
-
 ## synonym:credit
 - credit card
 - credit cards
 - credit account
 - credit accounts
+
+## synonym:emblem
+- emblm
+- embelm
