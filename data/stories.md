@@ -1,6 +1,8 @@
 ## greet/bye path
 * greet
   - utter_greet
+* greet
+  - utter_great
 
 ## say goodbye
 * goodbye
@@ -76,7 +78,7 @@
     - transfer_form
     - form{"name": "transfer_form"}
     - form{"name": null}
-  
+
 ## transfer money ask known recipients
 * transfer_money
     - transfer_form
@@ -363,4 +365,3 @@
 ## Show credit accounts
 * check_balance{"account_type":"credit","credit_card":"emblem"}
     - action_credit_card_balance
-
