@@ -326,6 +326,13 @@
 - transfer money to evan oslo
 - transfer money to sara
 - I need to transfer money to my grandma Judith.
+- transfer to John Jacob
+- transfer money to John
+- Transfer money to John
+- Can I transfer money to a friend?
+- Transfer money
+- I need to send money to my kid
+- I need to transfer money to my co-worker who paid for lunch
 
 ## intent:check_recipients
 - Who can I send money to?
@@ -364,7 +371,6 @@
 - i want to talk to a human
 - transfer to a human
 - Please give me to a human
-
 
 ## synonym:credit
 - credit card
