@@ -14,6 +14,7 @@
 - sweet
 - cool,
 - yes...
+- /affirm
 
 ## intent:ask_transfer_charge
 - Will I be charged for transferring money
@@ -215,6 +216,7 @@
 - today please
 - [Iron Bank](credit_card)
 - My [visa](credit_card)
+- 200 dollars
 
 ## intent:pay_cc
 - I would like to pay the [minimum balance](payment_amount) on my [embelm](credit_card) card
@@ -250,6 +252,10 @@
 - Pay off my [credit card]{"entity": "account_type", "value": "credit"}, please
 - I guess it is. Since it's so much, let's pay off my [credit](account_type)
 - Let's pay that [credit card]{"entity": "account_type", "value": "credit"} bill
+- pay balance
+- pay my account
+- i'd like to pay my balance
+- pay [credit card]{"entity": "account_type", "value": "credit"}
 
 ## intent:search_transactions
 - how much did I spend at [Target](vendor_name) this week?
@@ -364,7 +370,6 @@
 - i want to talk to a human
 - transfer to a human
 - Please give me to a human
-
 
 ## synonym:credit
 - credit card
